@@ -1,0 +1,27 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+
+
+  # Server Configuration
+  config.vm.define "ndesprezS" do |server|
+    server.vm.hostname = "ndesprezS"
+    server.vm.network "private_network", ip: "192.168.56.110"
+    server.vm.provider "virtualbox" do |vb|
+      vb.cpus = 2
+      vb.memory = 2048
+    end
+    server.vm.provision "shell", path: "scripts/server_setup.sh"
+  end
+
+
+  # Worker Configuration
+  config.vm.define "ndesprezSW" do |worker|
+    worker.vm.hostname = "ndesprezSW"
+    worker.vm.network "private_network", ip: "192.168.56.111"
+    worker.vm.provider "virtualbox" do |vb|
+      vb.cpus = 2
+      vb.memory = 2048
+    end
+    worker.vm.provision "shell", path: "scripts/worker_setup.sh"
+  end
+end

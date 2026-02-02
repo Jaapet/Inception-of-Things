@@ -17,6 +17,7 @@ clean:
 	@cd p2 2>/dev/null && vagrant destroy -f || true
 	@cd p3 2>/dev/null && vagrant destroy -f || true
 	@cd bonus 2>/dev/null && vagrant destroy -f || true
+	rm -rf p1/.vagrant p2/.vagrant p3/.vagrant bonus/.vagrant
 	vagrant global-status --prune
 
 fclean: clean

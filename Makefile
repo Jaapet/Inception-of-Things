@@ -1,4 +1,4 @@
-.PHONY: install-vagrant install-vbox init clean fclean help
+.PHONY: install-vagrant install-vbox init clean fclean hosts hosts-clean help
 
 install-vagrant:
 	wget -qO - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg 2>/dev/null || true
@@ -10,7 +10,11 @@ install-vbox:
 	sudo apt install -y virtualbox virtualbox-dkms
 	@vboxmanage --version
 
-init: install-vagrant install-vbox
+rm-kvm:
+	@sudo rmmod kvm_intel 2>/dev/null || true
+	@sudo rmmod kvm 2>/dev/null || true
+
+init: install-vagrant install-vbox rm-kvm hosts
 
 clean:
 	@cd p1 2>/dev/null && vagrant destroy -f || true
@@ -20,9 +24,15 @@ clean:
 	rm -rf p1/.vagrant p2/.vagrant p3/.vagrant bonus/.vagrant
 	vagrant global-status --prune
 
-fclean: clean
+fclean: clean hosts-clean
 	sudo apt remove -y vagrant virtualbox virtualbox-dkms
 	sudo apt autoremove -y
+
+hosts:
+	@grep -q "192.168.56.110.*app1.com" /etc/hosts || echo "192.168.56.110 app1.com app2.com app3.com" | sudo tee -a /etc/hosts > /dev/null
+
+hosts-clean:
+	@sudo sed -i '/app1.com/d' /etc/hosts
 
 help:
 	@echo "Available commands:"

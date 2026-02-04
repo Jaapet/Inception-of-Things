@@ -5,8 +5,8 @@ sudo bash ./scripts/clean_cluster.sh
 echo "----- Clean -----"
 
 # Create the Cluster
-echo -n "[1/7] Creating Cluster 'ndesprezS'... "
-if sudo k3d cluster create ndesprezS --api-port 6443 -p "8888:8888@loadbalancer" -p "8080:30080@server:0" --agents 1 --wait > /dev/null 2>&1; then
+echo -n "[1/7] Creating Cluster 'fpalumboS'... "
+if sudo k3d cluster create fpalumboS --api-port 6443 -p "8888:8888@loadbalancer" -p "8080:30080@server:0" -p "8082:80@loadbalancer" --agents 1 --wait > /dev/null 2>&1; then
     echo "OK"
 else
     echo "KO"
@@ -77,7 +77,7 @@ fi
 echo "------------------------------------------------"
 echo "   App URL:      http://localhost:8888"
 echo "   Argo CD URL:  http://localhost:8080"
-echo "   GitLab URL:   http://localhost"
+echo "   GitLab URL:   http://localhost:8082"
 echo ""
 echo "   Argo CD:"
 echo "   Username: admin"
@@ -89,7 +89,3 @@ echo "   Username: root"
 GITLAB_PASS=$(sudo kubectl -n gitlab get secret gitlab-gitlab-initial-root-password -o jsonpath='{.data.password}' 2>/dev/null | base64 -d)
 echo "   Password: $GITLAB_PASS"
 echo "------------------------------------------------"
-echo ""
-echo "You can now use kubectl without sudo:"
-echo "  kubectl get pods -n gitlab"
-echo "  kubectl get pods -n argocd"

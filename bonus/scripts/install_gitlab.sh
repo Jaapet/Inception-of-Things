@@ -44,7 +44,7 @@ else
 fi
 
 echo "------------------------------------------------"
-echo "   GitLab URL: http://localhost"
+echo "   GitLab URL: http://localhost:8082"
 echo ""
 echo "   Username: root"
 PASS=$(sudo kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath="{.data.password}" 2>/dev/null | base64 -d)

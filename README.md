@@ -177,13 +177,13 @@ bash scripts/launch_cluster.sh
 # Access the services
 http://localhost:8888  # Application (v1 or v2)
 http://localhost:8080  # Argo CD UI (user: admin)
-http://localhost       # GitLab (user: root)
+http://localhost:8082  # GitLab (user: root)
 ```
 
 ### Setup GitLab Repository
 
 ```bash
-# 1. Open GitLab UI at http://localhost
+# 1. Open GitLab UI at http://localhost:8082
 #    Login with: root / (password from launch output)
 
 # 2. Create new project manually:
@@ -192,7 +192,7 @@ http://localhost       # GitLab (user: root)
 #    - Initialize with README: No
 
 # 3. Clone the repo locally (from your machine):
-git clone http://localhost/root/iot-app.git
+git clone http://localhost:8082/root/iot-app.git
 cd iot-app
 
 # 4. Copy manifests from p3/confs/ to local repo

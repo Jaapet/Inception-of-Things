@@ -5,7 +5,7 @@ sudo bash ./scripts/clean_cluster.sh
 echo "----- Clean -----"
 
 # Create the Cluster
-echo -n "[1/6] Creating Cluster 'ndesprezS'... "
+echo -n "[1/7] Creating Cluster 'ndesprezS'... "
 if sudo k3d cluster create ndesprezS --api-port 6443 -p "8888:8888@loadbalancer" -p "8080:30080@server:0" --agents 1 --wait > /dev/null 2>&1; then
     echo "OK"
 else
@@ -15,7 +15,7 @@ else
 fi
 
 # Create Namespaces
-echo -n "[2/6] Creating namespaces... "
+echo -n "[2/7] Creating namespaces... "
 if sudo kubectl create namespace argocd > /dev/null 2>&1 && \
    sudo kubectl create namespace dev > /dev/null 2>&1; then
     echo "OK"
@@ -26,7 +26,7 @@ else
 fi
 
 # Install Argo CD
-echo -n "[3/6] Installing Argo CD... "
+echo -n "[3/7] Installing Argo CD... "
 if sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml --server-side > /dev/null 2>&1; then
     echo "OK"
 else
@@ -36,7 +36,7 @@ else
 fi
 
 # Switch to nodeport
-echo -n "[4/6] Wiring Port 8080 -> Argo CD... "
+echo -n "[4/7] Wiring Port 8080 -> Argo CD... "
 PATCH='{"spec": {"type": "NodePort", "ports": [{"port": 443, "nodePort": 30080, "name": "https"}]}}'
 if sudo kubectl patch svc argocd-server -n argocd -p "$PATCH" > /dev/null 2>&1; then
     echo "OK"
@@ -46,7 +46,7 @@ else
 fi
 
 # Wait for Argo CD
-echo -n "[5/6] Waiting for Argo CD to init... "
+echo -n "[5/7] Waiting for Argo CD to init... "
 if sudo kubectl wait -n argocd --for=condition=Ready pods --all --timeout=600s > /dev/null 2>&1; then
     echo "OK"
 else
@@ -77,7 +77,7 @@ fi
 echo "------------------------------------------------"
 echo "   App URL:      http://localhost:8888"
 echo "   Argo CD URL:  http://localhost:8080"
-echo "   GitLab URL:   http://localhost:8082"
+echo "   GitLab URL:   http://localhost"
 echo ""
 echo "   Argo CD:"
 echo "   Username: admin"

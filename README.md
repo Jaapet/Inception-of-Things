@@ -182,45 +182,60 @@ http://localhost:8082  # GitLab (user: root)
 
 ### Setup GitLab Repository
 
+**Automatic setup (recommended):**
+
+```bash
+cd bonus
+bash scripts/setup_gitlab.sh
+```
+
+This script will:
+- Wait for GitLab to be ready
+- Create the `iot-app` project automatically
+- Clone the repo and push p3 manifests
+- Configure Argo CD integration
+
+**Manual setup (if automatic fails):**
+
 ```bash
 # 1. Open GitLab UI at http://localhost:8082
 #    Login with: root / (password from launch output)
 
-# 2. Create new project manually:
+# 2. Create new project:
 #    - Name: iot-app
 #    - Visibility: Public
 #    - Initialize with README: No
 
-# 3. Clone the repo locally (from your machine):
+# 3. Clone and setup repo
 git clone http://localhost:8082/root/iot-app.git
 cd iot-app
-
-# 4. Copy manifests from p3/confs/ to local repo
 cp -r ../p3/confs/* .
-
-# 5. Push to GitLab
 git add .
 git commit -m "Initial commit: deployment manifests"
 git push -u origin main
+
+# 4. Configure Argo CD
+cd ../bonus
+sudo kubectl apply -f ./confs/deploy.yaml
 ```
 
 ### Verify GitOps Sync
 
 ```bash
-# Check GitLab repo
-kubectl get all -n gitlab
+# Check GitLab pods
+sudo kubectl get pods -n gitlab
 
-# Check Argo CD
-kubectl get all -n argocd
+# Check Argo CD Application status
+sudo kubectl get applications -n argocd
 
-# Check deployed app
-kubectl get all -n dev
+# Check deployed application pods
+sudo kubectl get pods -n dev
 
-# View Argo CD sync status
-http://localhost:8080
-# Login: admin / (password from launch output)
-# Check if "app" is Synced
+# View detailed Argo CD sync status
+sudo kubectl get application app -n argocd -o yaml | grep -A 5 syncStatus
 ```
+
+Or access Argo CD UI at http://localhost:8080 and check if the "app" Application is Synced (green check).
 
 ### Update Application Version
 

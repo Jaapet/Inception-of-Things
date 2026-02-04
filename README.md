@@ -17,6 +17,48 @@ make fclean
 
 ## Part 1: K3s and Vagrant
 
+### Quick Start
+
+```bash
+# Navigate to Part 1
+cd p1
+
+# Launch the VMs (server + worker nodes)
+vagrant up
+
+# SSH into server node
+vagrant ssh <login>S
+
+# SSH into worker node
+vagrant ssh <login>SW
+
+# Check cluster status
+kubectl get nodes
+```
+
+### Verify Deployment
+
+```bash
+# SSH into server node
+vagrant ssh <login>S
+
+# Check all nodes
+kubectl get nodes -o wide
+
+# Check all pods
+kubectl get pods -A
+
+# View cluster info
+kubectl cluster-info
+```
+
+### Cleanup (Part 1 only)
+
+```bash
+cd p1
+vagrant destroy -f
+```
+
 ---
 
 ## Part 2: K3s and Three Simple Applications

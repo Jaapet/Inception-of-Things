@@ -64,14 +64,8 @@ else
     echo "Note: GitLab installation may take time. Check with: kubectl get pods -n gitlab"
 fi
 
-# Apply Application Config (pointing to GitLab)
-echo -n "[7/7] Connecting Argo CD to GitLab... "
-if sudo kubectl apply -f ./confs/deploy.yaml > /dev/null 2>&1; then
-    echo "OK"
-else
-    echo "KO"
-    exit 1
-fi
+# Note: deploy.yaml will be applied manually after GitLab repo setup
+echo "[7/7] Connecting Argo CD to GitLab... Skipped (apply manually after setup)"
 
 # Get passwords
 echo "------------------------------------------------"
@@ -88,4 +82,12 @@ echo "   GitLab:"
 echo "   Username: root"
 GITLAB_PASS=$(sudo kubectl -n gitlab get secret gitlab-gitlab-initial-root-password -o jsonpath='{.data.password}' 2>/dev/null | base64 -d)
 echo "   Password: $GITLAB_PASS"
+echo "------------------------------------------------"
+echo ""
+echo "NEXT STEPS:"
+echo "1. Create GitLab repository 'iot-app' at http://localhost:8082"
+echo "2. Clone it: git clone http://localhost:8082/root/iot-app.git"
+echo "3. Copy manifests: cp -r ../p3/confs/* ."
+echo "4. Push to GitLab: git add . && git commit -m 'init' && git push"
+echo "5. Apply Argo CD config: sudo kubectl apply -f ./confs/deploy.yaml"
 echo "------------------------------------------------"

@@ -7,18 +7,15 @@ if [ -z "$KUBECONFIG" ]; then
     kubectl config set-cluster default --insecure-skip-tls-verify=true 2>/dev/null || true
 fi
 
-echo -n "[1/2] Deleting GitLab namespace... "
+echo -n "[1/3] Deleting GitLab namespace... "
 if kubectl delete namespace gitlab > /dev/null 2>&1; then
     echo "OK"
 else
     echo "OK | (Not found)"
 fi
 
-echo -n "[2/2] Stopping port-forward... "
-if pkill -f "kubectl port-forward.*gitlab" > /dev/null 2>&1; then
-    echo "OK"
-else
-    echo "OK | (Not running)"
-fi
+echo -n "[2/2] Cleaning up residual files... "
+rm -f /tmp/gitlab-portforward.log 2>/dev/null || true
+echo "OK"
 
 echo "GitLab cleaned!"

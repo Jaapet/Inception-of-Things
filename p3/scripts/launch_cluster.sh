@@ -6,7 +6,7 @@ echo "----- Clean -----"
 
 # Create the Cluster
 echo -n "[1/6] Creating Cluster 'ndesprezS'... "
-if sudo k3d cluster create ndesprezS --api-port 6443 -p "8888:8888@loadbalancer" -p "8080:30080@server:0" --agents 1 --wait > /dev/null 2>&1; then
+if sudo k3d cluster create ndesprezS --api-port 6443 -p "80:80@loadbalancer" -p "443:443@loadbalancer" -p "8888:8888@loadbalancer" -p "8080:30080@server:0" --agents 1 --wait > /dev/null 2>&1; then
     echo "OK"
 else
     echo "KO"

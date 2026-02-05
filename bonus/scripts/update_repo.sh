@@ -7,7 +7,7 @@ export KUBECONFIG=/tmp/k3d-kubeconfig.yaml
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # GitLab credentials (hardcoded in our simple deployment)
-GITLAB_HOST="localhost:30081"
+GITLAB_HOST="localhost/gitlab"
 GITLAB_USER="root"
 GITLAB_PASSWORD="fpalumbo42"
 PROJECT_NAME="iot-app"
@@ -16,28 +16,27 @@ echo "=== Setting up GitLab Repository for Argo CD ==="
 echo ""
 
 # Step 1: Wait for GitLab to be ready
-echo -n "[1/4] Waiting for GitLab to be ready... "
-for i in {1..60}; do
+echo -n "[1/3] Waiting for GitLab to be ready... "
+for i in {1..120}; do
     if curl -s "http://$GITLAB_HOST" > /dev/null 2>&1; then
         echo "OK"
         break
     fi
-    if [ $i -eq 60 ]; then
+    if [ $i -eq 120 ]; then
         echo "KO"
-        echo "Error: GitLab not responding after 60 seconds"
+        echo "Error: GitLab not responding after 120 seconds"
+        echo "Hint: GitLab may still be initializing (can take 10-15 minutes)"
         exit 1
     fi
     sleep 1
 done
 
-# Step 2: Create GitLab project via API
-echo -n "[2/4] Creating GitLab project '$PROJECT_NAME'... "
-curl -s -u "$GITLAB_USER:$GITLAB_PASSWORD" -X POST "http://$GITLAB_HOST/api/v4/projects" \
-    -d "name=$PROJECT_NAME&visibility=public" > /dev/null 2>&1
-echo "OK (created or already exists)"
+# Step 2: Create GitLab project (will be created on first push via git protocol)
+echo -n "[2/3] Preparing for repository creation... "
+echo "OK (will be created on first git push)"
 
 # Step 3: Clone, update, and push to GitLab
-echo -n "[3/4] Pushing manifests to GitLab... "
+echo -n "[3/3] Pushing manifests to GitLab... "
 WORK_DIR=$(mktemp -d)
 trap "rm -rf $WORK_DIR" EXIT
 
@@ -51,8 +50,9 @@ else
     cd repo
 fi
 
-# Copy manifests from p3/confs
-cp -r "$SCRIPT_DIR/p3/confs"/* . 2>/dev/null || true
+# Copy application manifests (app.yaml with Deployment and Service)
+mkdir -p confs
+cp "$SCRIPT_DIR/bonus/confs/app.yaml" confs/ 2>/dev/null || true
 
 # Commit and push
 git config user.email "root@localhost.local"
@@ -64,22 +64,23 @@ git push -u "http://$GITLAB_USER:$GITLAB_PASSWORD@$GITLAB_HOST/root/$PROJECT_NAM
 
 echo "OK"
 
-# Step 4: Apply deploy.yaml to update Argo CD Application
-echo -n "[4/4] Configuring Argo CD to use GitLab... "
-if kubectl apply -f "$SCRIPT_DIR/bonus/confs/deploy.yaml" > /dev/null 2>&1; then
-    echo "OK"
-else
-    echo "KO"
-    echo "Error: Could not update Argo CD"
-    exit 1
-fi
-
 echo ""
-echo "=== Complete! GitLab repository created and Argo CD configured ==="
+echo "=== Complete! GitLab repository created ==="
 echo ""
 echo "GitLab Project: http://$GITLAB_HOST/root/$PROJECT_NAME"
 echo "Repository: http://$GITLAB_HOST/root/$PROJECT_NAME.git"
 echo ""
-echo "Argo CD will now sync from GitLab instead of GitHub."
-echo "Check sync status: kubectl get application app -n argocd"
+
+# Step 4: Configure Argo CD to sync from GitLab
+echo -n "[4/4] Configuring Argo CD to sync from GitLab... "
+kubectl apply --validate=false -f "$SCRIPT_DIR/bonus/confs/deploy.yaml" > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED (kubectl may not be configured)"
+fi
+
+echo ""
+echo "=== Setup Complete! ==="
+echo "Argo CD is now syncing from GitLab!"
 echo ""

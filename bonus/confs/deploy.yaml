@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'http://root:fpalumbo42@gitlab.gitlab.svc.cluster.local/root/iot-app.git'
+    repoURL: 'http://root:fpalumbo42@gitlab-service.gitlab.svc.cluster.local/gitlab/root/iot-app.git'
     targetRevision: main
     path: confs
   destination:

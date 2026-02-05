@@ -25,6 +25,7 @@ install-p3-tools:
 init: install-vagrant install-vbox rm-kvm hosts install-p3-tools docker-config
 
 clean:
+	@cd p3 2>/dev/null && bash scripts/clean.sh 2>/dev/null || true
 	@cd p1 2>/dev/null && vagrant destroy -f || true
 	@cd p2 2>/dev/null && vagrant destroy -f || true
 	@cd p3 2>/dev/null && vagrant destroy -f || true

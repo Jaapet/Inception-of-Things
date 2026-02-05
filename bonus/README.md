@@ -26,14 +26,9 @@ This will:
 
 ### 2. Access GitLab
 
-After installation, set up port-forwarding:
+After installation, access GitLab (port-forwarding is already set up by gitlab.sh):
 
-```bash
-sudo kubectl port-forward -n gitlab svc/gitlab-webservice-default 80:8080 &
-```
-
-Then access:
-- **URL**: http://localhost:8082
+- **URL**: http://gitlab.k3d.gitlab.com:8082
 - **Username**: root
 - **Password**: Check the output from gitlab.sh
 
@@ -66,7 +61,7 @@ sudo kubectl get pods -n dev
 
 - **Application**: http://localhost:8888
 - **Argo CD**: http://localhost:8080
-- **GitLab**: http://localhost:8082
+- **GitLab**: http://gitlab.k3d.gitlab.com:8082
 
 ## Update Application
 

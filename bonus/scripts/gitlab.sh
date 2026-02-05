@@ -31,9 +31,17 @@ kubectl apply -f "$SCRIPT_DIR/confs/gitlab.yaml" -n gitlab
 
 echo "OK"
 
+# Wait for pod to be ready
+echo -n "[4/4] Waiting for GitLab pod to be ready... "
+if kubectl wait --for=condition=Ready pod -l app=gitlab -n gitlab --timeout=300s > /dev/null 2>&1; then
+    echo "OK"
+else
+    echo "KO (still initializing)"
+fi
+
 # Port-forward to localhost
 echo -n "Setting up port-forward... "
-kubectl port-forward -n gitlab svc/gitlab 8082:80 &
+kubectl port-forward -n gitlab svc/gitlab 8082:80 > /dev/null 2>&1 &
 sleep 2
 echo "OK"
 

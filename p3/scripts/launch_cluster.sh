@@ -15,7 +15,7 @@ else
 fi
 
 # Create Namespaces
-echo -n "[2/6] Creating namespaces... "
+echo -n "[2/7] Creating namespaces... "
 if sudo kubectl create namespace argocd > /dev/null 2>&1 && \
    sudo kubectl create namespace dev > /dev/null 2>&1; then
     echo "OK"
@@ -25,8 +25,24 @@ else
     exit 1
 fi
 
+# Create Docker registry secret for private images
+echo -n "[3/7] Creating Docker registry secret... "
+if [ -f /root/.docker/config.json ]; then
+    if sudo kubectl create secret docker-registry dockercfg \
+        --from-file=.dockerconfigjson=/root/.docker/config.json \
+        -n dev; then
+        echo "OK"
+    else
+        echo "KO"
+        echo "Warning: Failed to create Docker registry secret."
+    fi
+else
+    echo "Skipped (no Docker config found)"
+    echo "Note: To use Docker credentials, run: docker login"
+fi
+
 # Install Argo CD
-echo -n "[3/6] Installing Argo CD... "
+echo -n "[4/7] Installing Argo CD... "
 if sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml --server-side > /dev/null 2>&1; then
     echo "OK"
 else
@@ -36,7 +52,7 @@ else
 fi
 
 # Switch to nodeport
-echo -n "[4/6] Wiring Port 8080 -> Argo CD... "
+echo -n "[5/7] Wiring Port 8080 -> Argo CD... "
 PATCH='{"spec": {"type": "NodePort", "ports": [{"port": 443, "nodePort": 30080, "name": "https"}]}}'
 if sudo kubectl patch svc argocd-server -n argocd -p "$PATCH" > /dev/null 2>&1; then
     echo "OK"
@@ -46,7 +62,7 @@ else
 fi
 
 # Wait for Argo CD
-echo -n "[5/6] Waiting for Argo CD to init... "
+echo -n "[6/7] Waiting for Argo CD to init... "
 if sudo kubectl wait -n argocd --for=condition=Ready pods --all --timeout=600s > /dev/null 2>&1; then
     echo "OK"
 else
@@ -56,7 +72,7 @@ else
 fi
 
 # Apply Application Config
-echo -n "[6/6] Connecting Argo CD to GitHub... "
+echo -n "[7/7] Connecting Argo CD to GitHub... "
 if sudo kubectl apply -f ./confs/deploy.yaml > /dev/null 2>&1; then
     echo "OK"
 else

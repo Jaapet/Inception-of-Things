@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8080/root/buthor.git'
-    targetRevision: HEAD
+    repoURL: 'http://root:fpalumbo42@gitlab.gitlab.svc.cluster.local/root/iot-app.git'
+    targetRevision: main
     path: confs
   destination:
     server: https://kubernetes.default.svc

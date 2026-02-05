@@ -1,11 +1,17 @@
 #!/bin/bash
 
 # Setup kubeconfig for K3d
-if [ -z "$KUBECONFIG" ]; then
-    export KUBECONFIG=/tmp/k3d-kubeconfig.yaml
+export KUBECONFIG=/tmp/k3d-kubeconfig.yaml
+
+# Ensure kubeconfig exists and is readable
+if [ ! -f "$KUBECONFIG" ]; then
+    echo "Extracting kubeconfig from K3d cluster..."
     docker exec k3d-ndesprezS-server-0 cat /etc/rancher/k3s/k3s.yaml > $KUBECONFIG 2>/dev/null
-    kubectl config set-cluster default --insecure-skip-tls-verify=true 2>/dev/null || true
+    chmod 644 $KUBECONFIG
 fi
+
+# Disable TLS verification for self-signed K3d certs
+kubectl config set-cluster default --insecure-skip-tls-verify=true 2>/dev/null || true
 
 # Install dependencies
 echo -n "[1/3] Installing dependencies... "
@@ -39,17 +45,19 @@ else
     echo "KO (still initializing)"
 fi
 
-# Port-forward to localhost
-echo -n "Setting up port-forward... "
-kubectl port-forward -n gitlab svc/gitlab 8082:80 > /dev/null 2>&1 &
-sleep 2
-echo "OK"
+# Get the Node IP (K3d cluster node)
+echo -n "Getting cluster node IP... "
+NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || echo "127.0.0.1")
+echo "OK (${NODE_IP})"
 
 echo ""
-echo "GitLab is starting (this may take 2-5 minutes)..."
+echo "GitLab is starting (this may take 5-15 minutes)..."
 echo ""
-echo "Access GitLab at: http://gitlab.k3d.gitlab.com:8082"
+echo "Access GitLab at: http://${NODE_IP}:30080"
 echo ""
 echo "Credentials:"
 echo "  Username: root"
-echo "  Password: GitLabP@ssw0rd2026"
+echo "  Password: fpalumbo42"
+echo ""
+echo "Monitor initialization with:"
+echo "  kubectl logs -n gitlab gitlab -f"

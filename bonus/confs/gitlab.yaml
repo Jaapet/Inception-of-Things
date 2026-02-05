@@ -18,20 +18,14 @@ spec:
         external_url 'http://gitlab.k3d.gitlab.com'
         nginx['listen_port'] = 80
         nginx['listen_https'] = false
-        gitlab_rails['initial_root_password'] = 'GitLabP@ssw0rd2026'
-    livenessProbe:
-      httpGet:
-        path: /-/health
-        port: 80
-      initialDelaySeconds: 120
-      periodSeconds: 10
+        gitlab_rails['initial_root_password'] = 'fpalumbo42'
     resources:
       limits:
-        memory: 2Gi
-        cpu: 1
+        memory: 8Gi
+        cpu: 4
       requests:
-        memory: 1Gi
-        cpu: 500m
+        memory: 6Gi
+        cpu: 3
     volumeMounts:
     - name: gitlab-data
       mountPath: /var/opt/gitlab
@@ -45,8 +39,10 @@ metadata:
   name: gitlab
   namespace: gitlab
 spec:
+  type: NodePort
   ports:
   - port: 80
     targetPort: 80
+    nodePort: 30081
   selector:
     app: gitlab

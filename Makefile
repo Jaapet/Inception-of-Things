@@ -1,4 +1,4 @@
-.PHONY: install-vagrant install-vbox docker-config install-p3-tools init clean clean-gitlab fclean hosts hosts-clean help
+.PHONY: install-vagrant install-vbox docker-config install-p3-tools kubeconfig-setup init clean clean-gitlab fclean hosts hosts-clean help
 
 install-vagrant:
 	wget -qO - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg 2>/dev/null || true
@@ -22,7 +22,24 @@ docker-config:
 install-p3-tools:
 	@bash p3/scripts/install_tools.sh
 
-init: install-vagrant install-vbox rm-kvm hosts install-p3-tools docker-config
+kubeconfig-setup:
+	@echo "Configuring KUBECONFIG for K3d..."
+	@if [ -f ~/.zshrc ]; then \
+		if ! grep -q "KUBECONFIG=/tmp/k3d-kubeconfig.yaml" ~/.zshrc; then \
+			echo 'export KUBECONFIG=/tmp/k3d-kubeconfig.yaml' >> ~/.zshrc; \
+			echo "✓ Added to ~/.zshrc"; \
+		fi; \
+	fi
+	@if [ -f ~/.bashrc ]; then \
+		if ! grep -q "KUBECONFIG=/tmp/k3d-kubeconfig.yaml" ~/.bashrc; then \
+			echo 'export KUBECONFIG=/tmp/k3d-kubeconfig.yaml' >> ~/.bashrc; \
+			echo "✓ Added to ~/.bashrc"; \
+		fi; \
+	fi
+	@export KUBECONFIG=/tmp/k3d-kubeconfig.yaml
+	@echo "Current shell: KUBECONFIG is now configured"
+
+init: install-vagrant install-vbox rm-kvm hosts install-p3-tools docker-config kubeconfig-setup
 
 clean:
 	@cd p3 2>/dev/null && bash scripts/clean.sh 2>/dev/null || true
@@ -49,10 +66,11 @@ hosts-clean:
 help:
 	@echo "Available commands:"
 	@echo ""
-	@echo "  make init               - Complete setup (Vagrant, VirtualBox, P3 tools, Docker config)"
+	@echo "  make init               - Complete setup (Vagrant, VirtualBox, P3 tools, Docker config, KUBECONFIG)"
 	@echo "  make install-vagrant    - Install Vagrant from official HashiCorp repository"
 	@echo "  make install-vbox       - Install VirtualBox"
 	@echo "  make install-p3-tools   - Install P3 tools (k3d, kubectl, helm, etc)"
+	@echo "  make kubeconfig-setup   - Configure KUBECONFIG for K3d in shell profile"
 	@echo "  make docker-config      - Copy Docker credentials to /root/.docker/"
 	@echo "  make clean              - Destroy all Vagrant VMs"
 	@echo "  make clean-gitlab       - Clean up GitLab (bonus section)"

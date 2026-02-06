@@ -15,7 +15,7 @@ PROJECT_NAME="iot-app"
 echo "=== Setting up GitLab Repository for Argo CD ==="
 echo ""
 
-# Step 1: Wait for GitLab to be ready
+# Wait for GitLab to be ready
 echo -n "[1/2] Waiting for GitLab to be ready... "
 for i in {1..120}; do
     if curl -s "http://$GITLAB_HOST" > /dev/null 2>&1; then
@@ -31,7 +31,7 @@ for i in {1..120}; do
     sleep 1
 done
 
-# Step 2: Clone, update, and push to GitLab
+# Clone, update, and push to GitLab
 echo -n "[2/2] Pushing manifests to GitLab... "
 WORK_DIR=$(mktemp -d)
 trap "rm -rf $WORK_DIR" EXIT
@@ -67,7 +67,7 @@ echo "GitLab Project: http://$GITLAB_HOST/root/$PROJECT_NAME"
 echo "Repository: http://$GITLAB_HOST/root/$PROJECT_NAME.git"
 echo ""
 
-# Step 4: Configure Argo CD to sync from GitLab
+# Configure Argo CD to sync from GitLab
 echo -n "[4/4] Configuring Argo CD to sync from GitLab... "
 kubectl apply --validate=false -f "$SCRIPT_DIR/bonus/confs/deploy.yaml" > /dev/null 2>&1
 if [ $? -eq 0 ]; then

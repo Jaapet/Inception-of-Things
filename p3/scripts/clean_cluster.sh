@@ -8,8 +8,7 @@ else
     echo "KO | (Cluster not found or already deleted)"
 fi
 
-# Clean up Kubeconfig (Optional but good practice)
-# k3d usually handles this, but sometimes old contexts stick around.
+# Clean up Kubeconfig
 echo -n "[2/2] Cleaning kubeconfig context... "
 if sudo kubectl config delete-context k3d-ndesprezS > /dev/null 2>&1; then
     echo "OK"

@@ -2,7 +2,7 @@
 
 echo "Installing k3s..."
 export K3S_KUBECONFIG_MODE="644"
-curl -sfL https://get.k3s.io | sh -
+curl -sfL https://get.k3s.io | sh -s - --node-ip=192.168.56.110 --advertise-address=192.168.56.110
 
 if [ $? -ne 0 ]; then
   echo "Failed to install k3s. Exiting."

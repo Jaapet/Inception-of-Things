@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      containers:
+      - name: gitlab
+        image: gitlab/gitlab-ce:latest
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        - containerPort: 22
+          name: ssh
+        env:
+        - name: GITLAB_OMNIBUS_CONFIG
+          value: |
+            external_url 'http://localhost/gitlab'
+            gitlab_rails['relative_url_root'] = '/gitlab'
+            nginx['listen_port'] = 80
+            nginx['listen_https'] = false
+            gitlab_rails['initial_root_password'] = 'fpalumbo42'
+            # Memory-constrained optimizations
+            puma['worker_processes'] = 0
+            sidekiq['max_concurrency'] = 5
+            alertmanager['enable'] = false
+            gitlab_exporter['enable'] = false
+            gitlab_kas['enable'] = false
+            node_exporter['enable'] = false
+            postgres_exporter['enable'] = false
+            prometheus['enable'] = false
+            redis_exporter['enable'] = false
+        resources:
+          limits:
+            memory: 6Gi
+            cpu: 2
+          requests:
+            memory: 4Gi
+            cpu: 1
+        volumeMounts:
+        - name: gitlab-data
+          mountPath: /var/opt/gitlab
+      volumes:
+      - name: gitlab-data
+        persistentVolumeClaim:
+          claimName: gitlab-volume

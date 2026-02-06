@@ -3,10 +3,10 @@
 # Setup kubeconfig for K3d
 export KUBECONFIG=/tmp/k3d-kubeconfig.yaml
 
-# Get script directory FIRST (before any cd commands)
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-# GitLab credentials (hardcoded in our simple deployment)
+# GitLab credentials
 GITLAB_HOST="localhost/gitlab"
 GITLAB_USER="root"
 GITLAB_PASSWORD="fpalumbo42"
@@ -16,7 +16,7 @@ echo "=== Setting up GitLab Repository for Argo CD ==="
 echo ""
 
 # Step 1: Wait for GitLab to be ready
-echo -n "[1/3] Waiting for GitLab to be ready... "
+echo -n "[1/2] Waiting for GitLab to be ready... "
 for i in {1..120}; do
     if curl -s "http://$GITLAB_HOST" > /dev/null 2>&1; then
         echo "OK"
@@ -31,12 +31,8 @@ for i in {1..120}; do
     sleep 1
 done
 
-# Step 2: Create GitLab project (will be created on first push via git protocol)
-echo -n "[2/3] Preparing for repository creation... "
-echo "OK (will be created on first git push)"
-
-# Step 3: Clone, update, and push to GitLab
-echo -n "[3/3] Pushing manifests to GitLab... "
+# Step 2: Clone, update, and push to GitLab
+echo -n "[2/2] Pushing manifests to GitLab... "
 WORK_DIR=$(mktemp -d)
 trap "rm -rf $WORK_DIR" EXIT
 
@@ -50,7 +46,7 @@ else
     cd repo
 fi
 
-# Copy application manifests (app.yaml with Deployment and Service)
+# Copy application manifests
 mkdir -p confs
 cp "$SCRIPT_DIR/bonus/confs/app.yaml" confs/ 2>/dev/null || true
 
@@ -77,10 +73,5 @@ kubectl apply --validate=false -f "$SCRIPT_DIR/bonus/confs/deploy.yaml" > /dev/n
 if [ $? -eq 0 ]; then
     echo "OK"
 else
-    echo "FAILED (kubectl may not be configured)"
+    echo "FAILED"
 fi
-
-echo ""
-echo "=== Setup Complete! ==="
-echo "Argo CD is now syncing from GitLab!"
-echo ""

@@ -166,95 +166,77 @@ bash scripts/clean_cluster.sh
 
 ### Quick Start
 
+**Prerequisites:** Part 3 K3d cluster must be running with Argo CD
+
 ```bash
-# Install Docker, K3d, kubectl
+# Navigate to bonus directory
 cd bonus
-bash scripts/install_tools.sh
 
-# Launch K3d cluster with Argo CD and GitLab
-bash scripts/launch_cluster.sh
+# Deploy GitLab to K3d cluster
+bash scripts/gitlab.sh
 
-# Access the services
-http://localhost:8888  # Application (v1 or v2)
-http://localhost:8080  # Argo CD UI (user: admin)
-http://localhost:8082  # GitLab (user: root)
+# Setup GitLab repository and configure Argo CD
+bash scripts/update_repo.sh
 ```
 
-### Setup GitLab Repository
-
-**Automatic setup (recommended):**
+### Access Services
 
 ```bash
-cd bonus
-bash scripts/setup_gitlab.sh
+# Application (deployed by Argo CD from GitLab)
+http://localhost:8888
+
+# Argo CD UI (GitOps control panel)
+http://localhost:8080
+Credentials: admin / (password shown during Part 3 setup)
+
+# GitLab (local repository)
+http://localhost/gitlab
+Credentials: root / fpalumbo42
 ```
 
-This script will:
-- Wait for GitLab to be ready
-- Create the `iot-app` project automatically
-- Clone the repo and push p3 manifests
-- Configure Argo CD integration
+### Setup Flow
 
-**Manual setup (if automatic fails):**
+1. **Deploy GitLab**:
+   ```bash
+   bash scripts/gitlab.sh
+   ```
+   - Creates `gitlab` namespace
+   - Deploys GitLab CE latest version
+   - Sets up Ingress at `/gitlab`
+   - Waits for pod readiness (5-10 minutes)
 
-```bash
-# 1. Open GitLab UI at http://localhost:8082
-#    Login with: root / (password from launch output)
+2. **Configure Argo CD to sync from GitLab**:
+   ```bash
+   bash scripts/update_repo.sh
+   ```
+   - Waits for GitLab to be ready
+   - Creates `iot-app` project
+   - Pushes application manifests (`confs/app.yaml`)
+   - Updates Argo CD Application to point to GitLab
 
-# 2. Create new project:
-#    - Name: iot-app
-#    - Visibility: Public
-#    - Initialize with README: No
-
-# 3. Clone and setup repo
-git clone http://localhost:8082/root/iot-app.git
-cd iot-app
-cp -r ../p3/confs/* .
-git add .
-git commit -m "Initial commit: deployment manifests"
-git push -u origin main
-
-# 4. Configure Argo CD
-cd ../bonus
-sudo kubectl apply -f ./confs/deploy.yaml
-```
-
-### Verify GitOps Sync
+### Verify Deployment
 
 ```bash
-# Check GitLab pods
+# Check GitLab pod status and services
 sudo kubectl get pods -n gitlab
+sudo kubectl get svc -n gitlab
 
 # Check Argo CD Application status
-sudo kubectl get applications -n argocd
+kubectl get application app -n argocd
 
-# Check deployed application pods
-sudo kubectl get pods -n dev
+# Check deployed application
+kubectl get pods -n dev
 
-# View detailed Argo CD sync status
-sudo kubectl get application app -n argocd -o yaml | grep -A 5 syncStatus
+# View detailed sync status
+kubectl describe application app -n argocd | grep -A 10 "Sync:"
+
+# View GitLab logs
+sudo kubectl logs -n gitlab deployment/gitlab -f
 ```
 
-Or access Argo CD UI at http://localhost:8080 and check if the "app" Application is Synced (green check).
-
-### Update Application Version
-
-```bash
-# In your local GitLab repo clone:
-# Edit confs/app-deployment.yaml
-# Change: wil42/playground:v1 → wil42/playground:v2
-
-git add .
-git commit -m "Update to v2"
-git push
-
-# Argo CD will automatically detect and sync the change
-# Check: http://localhost:8080
-```
-
-### Cleanup (Bonus only)
+### Cleanup
 
 ```bash
 cd bonus
-bash scripts/clean_cluster.sh
+bash scripts/clean_gitlab.sh
 ```

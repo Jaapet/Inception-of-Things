@@ -4,7 +4,7 @@
 export KUBECONFIG=/tmp/k3d-kubeconfig.yaml
 
 # Extract fresh kubeconfig from K3d cluster
-docker exec k3d-ndesprezS-server-0 cat /etc/rancher/k3s/k3s.yaml > $KUBECONFIG 2>/dev/null
+sudo docker exec k3d-ndesprezS-server-0 cat /etc/rancher/k3s/k3s.yaml > $KUBECONFIG 2>/dev/null
 chmod 644 $KUBECONFIG
 
 # Disable TLS verification for self-signed K3d certs
@@ -26,11 +26,13 @@ echo "OK"
 
 # Create gitlab namespace and deploy
 echo -n "[2/3] Deploying GitLab... "
-kubectl create namespace gitlab 2>/dev/null || true
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-kubectl apply --validate=false -f "$SCRIPT_DIR/confs/gitlab.yaml" -n gitlab
-kubectl apply --validate=false -f "$SCRIPT_DIR/confs/gitlab-ingress.yaml" -n gitlab
+kubectl apply --validate=false -f "$SCRIPT_DIR/confs/gitlab-namespace.yaml"
+kubectl apply --validate=false -f "$SCRIPT_DIR/confs/gitlab-pvc.yaml"
+kubectl apply --validate=false -f "$SCRIPT_DIR/confs/gitlab-deployment.yaml"
+kubectl apply --validate=false -f "$SCRIPT_DIR/confs/gitlab-service.yaml"
+kubectl apply --validate=false -f "$SCRIPT_DIR/confs/gitlab-ingress.yaml"
 
 echo "OK"
 
@@ -43,16 +45,10 @@ else
 fi
 
 echo ""
-echo "GitLab is starting (this may take 5-15 minutes)..."
+echo "GitLab is starting..."
 echo ""
 echo "Access GitLab at: http://localhost/gitlab"
 echo ""
 echo "Credentials:"
 echo "  Username: root"
 echo "  Password: fpalumbo42"
-echo ""
-echo "Monitor initialization with:"
-echo "  kubectl logs -n gitlab gitlab -f"
-echo ""
-echo "Once GitLab is ready, run:"
-echo "  bash bonus/scripts/update_repo.sh"
